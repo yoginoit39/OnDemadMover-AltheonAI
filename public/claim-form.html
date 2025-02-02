@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File a Claim - On Demand Movers USA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/claim-form.css">
+</head>
+<body>
+    <div class="floating-shape shape-1"></div>
+    <div class="floating-shape shape-2"></div>
+    
+    <div class="form-container">
+        <form id="claimForm" enctype="multipart/form-data">
+            <!-- Progress bar -->
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+                <div class="progress-step active" data-step="1">1</div>
+                <div class="progress-step" data-step="2">2</div>
+                <div class="progress-step" data-step="3">3</div>
+            </div>
+            
+            <!-- Step 1: Personal Information -->
+            <div class="form-step active" data-step="1">
+                <h2>Personal Information</h2>
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="moveDate">Move Date</label>
+                    <input type="date" id="moveDate" name="moveDate" required>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="btn-next">Next Step <span>→</span></button>
+                </div>
+            </div>
+
+            <!-- Step 2: Claim Details -->
+            <div class="form-step" data-step="2">
+                <h2>Claim Details</h2>
+                <div class="form-group">
+                    <label for="itemType">Item Type</label>
+                    <input type="text" id="itemType" name="itemType" required>
+                </div>
+                <div class="form-group">
+                    <label for="itemWeight">Approximate Weight (lbs)</label>
+                    <input type="number" id="itemWeight" name="itemWeight" required>
+                </div>
+                <div class="form-group">
+                    <label for="damageType">Type of Issue</label>
+                    <select id="damageType" name="damageType" required>
+                        <option value="">Select an option</option>
+                        <option value="broken">Broken</option>
+                        <option value="missing">Missing</option>
+                        <option value="damaged">Damaged</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">Detailed Description</label>
+                    <textarea id="description" name="description" required></textarea>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="btn-prev"><span>←</span> Previous</button>
+                    <button type="button" class="btn-next">Next Step <span>→</span></button>
+                </div>
+            </div>
+
+            <!-- Step 3: Documentation -->
+            <div class="form-step" data-step="3">
+                <h2>Documentation</h2>
+                <div class="form-group">
+                    <label for="images">Upload Images (if any)</label>
+                    <input type="file" id="images" name="images" multiple accept="image/*">
+                    <div class="image-preview" id="imagePreview"></div>
+                </div>
+                <div class="form-group">
+                    <label for="additionalInfo">Additional Information</label>
+                    <textarea id="additionalInfo" name="additionalInfo"></textarea>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="btn-prev"><span>←</span> Previous</button>
+                    <button type="submit" class="btn-submit">Submit Claim <span>✓</span></button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="/js/claim-form.js"></script>
+</body>
+</html> 

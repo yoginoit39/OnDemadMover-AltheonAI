@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <title>Claims Dashboard - On Demand Movers USA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header>
+            <h1>Enterprise Claims Management</h1>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
+        </header>
+
+        <div class="filters">
+            <input type="text" id="searchInput" placeholder="Search claims...">
+            <select id="statusFilter">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            <input type="date" id="dateFilter">
+        </div>
+
+        <div id="claimsContainer" class="claims-container">
+            <!-- Claims will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script src="/js/admin-dashboard.js"></script>
+</body>
+</html> 

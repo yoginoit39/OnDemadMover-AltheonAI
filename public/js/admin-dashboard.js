@@ -27,6 +27,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         const data = await dashboardResponse.json();
         console.log('Fetched claims data:', data);
 
+        // Update statistics
+        const stats = {
+            total: data.length,
+            pending: data.filter(claim => claim.status.toUpperCase() === 'PENDING').length,
+            approved: data.filter(claim => claim.status.toUpperCase() === 'APPROVED').length,
+            rejected: data.filter(claim => claim.status.toUpperCase() === 'REJECTED').length
+        };
+        
+        document.getElementById('totalClaims').textContent = stats.total;
+        document.getElementById('pendingClaims').textContent = stats.pending;
+        document.getElementById('approvedClaims').textContent = stats.approved;
+        document.getElementById('rejectedClaims').textContent = stats.rejected;
+
         // Verify the claims container exists
         const claimsContainer = document.getElementById('claimsContainer');
         if (!claimsContainer) {
@@ -56,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const status = e.target.value;
             const filteredClaims = status === 'all' 
                 ? data 
-                : data.filter(claim => claim.status === status);
+                : data.filter(claim => claim.status.toUpperCase() === status.toUpperCase());
             displayClaims(filteredClaims);
         });
 
@@ -92,10 +105,10 @@ function displayClaims(claims) {
     }
 
     claimsContainer.innerHTML = claims.map(claim => `
-        <div class="claim-card" data-status="${claim.status.toLowerCase()}">
+        <div class="claim-card" data-status="${claim.status.toUpperCase()}">
             <div class="claim-header">
                 <h3>${claim.name}</h3>
-                <span class="status-badge ${claim.status.toLowerCase()}">${claim.status}</span>
+                <span class="status-badge ${claim.status.toUpperCase()}">${claim.status}</span>
             </div>
             <div class="claim-details">
                 <p><strong>Email:</strong> ${claim.email}</p>
@@ -199,8 +212,28 @@ async function updateStatus(claimId, status) {
             throw new Error('Failed to update claim status');
         }
 
-        // Refresh dashboard data
-        location.reload();
+        // Fetch updated data and refresh statistics
+        const dashboardResponse = await fetch('/api/admin/claims', {
+            credentials: 'include'
+        });
+        
+        if (dashboardResponse.ok) {
+            const data = await dashboardResponse.json();
+            const stats = {
+                total: data.length,
+                pending: data.filter(claim => claim.status.toUpperCase() === 'PENDING').length,
+                approved: data.filter(claim => claim.status.toUpperCase() === 'APPROVED').length,
+                rejected: data.filter(claim => claim.status.toUpperCase() === 'REJECTED').length
+            };
+            
+            document.getElementById('totalClaims').textContent = stats.total;
+            document.getElementById('pendingClaims').textContent = stats.pending;
+            document.getElementById('approvedClaims').textContent = stats.approved;
+            document.getElementById('rejectedClaims').textContent = stats.rejected;
+            
+            // Update the claims display
+            displayClaims(data);
+        }
     } catch (error) {
         console.error('Error:', error);
         alert('Failed to update claim status');

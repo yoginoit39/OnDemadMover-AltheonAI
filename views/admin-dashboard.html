@@ -11,9 +11,28 @@
 <body>
     <div class="dashboard-container">
         <header>
-            <h1>Enterprise Claims Management</h1>
+            <h1>Admin Dashboard</h1>
             <button id="logoutBtn" class="logout-btn">Logout</button>
         </header>
+
+        <div class="stats-container">
+            <div class="stat-card total">
+                <h3>Total Claims</h3>
+                <p id="totalClaims">0</p>
+            </div>
+            <div class="stat-card pending">
+                <h3>Pending</h3>
+                <p id="pendingClaims">0</p>
+            </div>
+            <div class="stat-card approved">
+                <h3>Approved</h3>
+                <p id="approvedClaims">0</p>
+            </div>
+            <div class="stat-card rejected">
+                <h3>Rejected</h3>
+                <p id="rejectedClaims">0</p>
+            </div>
+        </div>
 
         <div class="filters">
             <input type="text" id="searchInput" placeholder="Search claims...">

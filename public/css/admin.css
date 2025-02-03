@@ -113,12 +113,12 @@ header h1 {
 }
 
 /* Status-based card styling */
-.claim-card[data-status="approved"] {
+.claim-card[data-status="APPROVED"] {
     border-left-color: #10b981; /* Green */
     background: linear-gradient(to right, rgba(16, 185, 129, 0.05), transparent);
 }
 
-.claim-card[data-status="rejected"] {
+.claim-card[data-status="REJECTED"] {
     border-left-color: #ef4444; /* Red */
     background: linear-gradient(to right, rgba(239, 68, 68, 0.05), transparent);
 }
@@ -146,19 +146,19 @@ header h1 {
     letter-spacing: 0.05em;
 }
 
-.status-badge.pending {
+.status-badge.PENDING {
     background: #fef3c7;
     color: #92400e;
     border: 1px solid #f59e0b;
 }
 
-.status-badge.approved {
+.status-badge.APPROVED {
     background: #d1fae5;
     color: #065f46;
     border: 1px solid #10b981;
 }
 
-.status-badge.rejected {
+.status-badge.REJECTED {
     background: #fee2e2;
     color: #991b1b;
     border: 1px solid #ef4444;
@@ -459,4 +459,58 @@ header h1 {
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     object-fit: contain;
+}
+
+/* Stats Container */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card h3 {
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card p {
+    color: var(--text-dark);
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+/* Stat card variants */
+.stat-card.total {
+    border-left: 4px solid var(--accent);
+    background: linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent);
+}
+
+.stat-card.pending {
+    border-left: 4px solid var(--warning);
+    background: linear-gradient(to right, rgba(245, 158, 11, 0.05), transparent);
+}
+
+.stat-card.approved {
+    border-left: 4px solid var(--success);
+    background: linear-gradient(to right, rgba(16, 185, 129, 0.05), transparent);
+}
+
+.stat-card.rejected {
+    border-left: 4px solid var(--danger);
+    background: linear-gradient(to right, rgba(239, 68, 68, 0.05), transparent);
 } 

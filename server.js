@@ -55,8 +55,8 @@ const ClaimSchema = new mongoose.Schema({
     images: [String],
     status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected'],
-        default: 'pending'
+        enum: ['PENDING', 'APPROVED', 'REJECTED'],
+        default: 'PENDING'
     },
     createdAt: {
         type: Date,
@@ -160,12 +160,89 @@ app.get('/api/admin/claims', authenticateToken, async (req, res) => {
     }
 });
 
-app.patch('/api/admin/claims/:id/status', authenticateToken, async (req, res) => {
-    const { id } = req.params;
-    const { status } = req.body;
+// Email configuration
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD
+    }
+});
 
-    const claim = await Claim.findByIdAndUpdate(id, { status }, { new: true });
-    res.json(claim);
+// Email notification function
+async function sendStatusUpdateEmail(claim, newStatus) {
+    console.log('Preparing to send status update email:', { claim, newStatus });
+    const statusMessages = {
+        APPROVED: "We're pleased to inform you that your claim has been approved.",
+        REJECTED: "After careful review, we regret to inform you that your claim has been rejected.",
+        PENDING: "Your claim status has been updated to pending review."
+    };
+
+    const emailTemplate = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #ff6b00;">Claim Status Update</h2>
+            <p>Dear ${claim.name},</p>
+            <p>${statusMessages[newStatus]}</p>
+            <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <p><strong>Claim Details:</strong></p>
+                <p>Item Type: ${claim.itemType}</p>
+                <p>Issue Type: ${claim.damageType}</p>
+                <p>Submitted: ${new Date(claim.createdAt).toLocaleDateString()}</p>
+            </div>
+            <p>If you have any questions, please don't hesitate to contact us.</p>
+            <p>Best regards,<br>On Demand Movers USA</p>
+        </div>
+    `;
+
+    try {
+        console.log('Sending email to:', claim.email);
+        await transporter.sendMail({
+            from: '"On Demand Movers USA" <' + process.env.EMAIL_USER + '>',
+            to: claim.email,
+            subject: `Claim Status Update - ${newStatus}`,
+            html: emailTemplate
+        });
+        console.log('Status update email sent to:', claim.email);
+    } catch (error) {
+        console.error('Error sending status update email:', error);
+        throw error;
+    }
+}
+
+// Update the status update endpoint
+app.post('/api/admin/claims/:id/status', authenticateToken, async (req, res) => {
+    try {
+        console.log('Received status update request:', { id: req.params.id, status: req.body.status });
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        if (!status) {
+            return res.status(400).json({ error: 'Status is required' });
+        }
+        
+        const claim = await Claim.findById(id);
+        if (!claim) {
+            return res.status(404).json({ error: 'Claim not found' });
+        }
+        
+        claim.status = status;
+        console.log('Updating claim with status:', status);
+        await claim.save();
+        
+        // Send email notification
+        try {
+            await sendStatusUpdateEmail(claim, status);
+            console.log('Status update email sent successfully');
+        } catch (emailError) {
+            console.error('Failed to send status update email:', emailError);
+            // Continue with the response even if email fails
+        }
+        
+        res.json({ success: true, claim });
+    } catch (error) {
+        console.error('Error updating claim status:', error);
+        res.status(500).json({ error: 'Failed to update claim status', details: error.message });
+    }
 });
 
 // Get single claim details
@@ -378,29 +455,6 @@ app.get('/api/admin/claims/:id', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Failed to fetch claim details' });
-    }
-});
-
-// Update claim status
-app.patch('/api/admin/claims/:id/status', authenticateToken, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
-        
-        const claim = await Claim.findByIdAndUpdate(
-            id,
-            { status },
-            { new: true }
-        );
-        
-        if (!claim) {
-            return res.status(404).json({ error: 'Claim not found' });
-        }
-        
-        res.json(claim);
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ error: 'Failed to update claim status' });
     }
 });
 

@@ -125,7 +125,7 @@ function displayClaims(claims) {
                 <button onclick="viewDetails('${claim._id}')" class="btn-view">View Details</button>
                 <select 
                     class="status-select" 
-                    onchange="updateStatus('${claim._id}', this.value)"
+                    onchange="updateClaimStatus('${claim._id}', this.value)"
                     value="${claim.status}"
                 >
                     <option value="PENDING" ${claim.status === 'PENDING' ? 'selected' : ''}>Pending</option>
@@ -199,47 +199,55 @@ async function viewDetails(claimId) {
     }
 }
 
-async function updateStatus(claimId, status) {
+async function updateClaimStatus(claimId, newStatus) {
     try {
+        console.log('Updating status:', { claimId, newStatus }); // Debug log
         const response = await fetch(`/api/admin/claims/${claimId}/status`, {
-            method: 'PATCH',
+            method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
-            credentials: 'include',
-            body: JSON.stringify({ status })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to update claim status');
-        }
-
-        // Fetch updated data and refresh statistics
-        const dashboardResponse = await fetch('/api/admin/claims', {
+            body: JSON.stringify({ status: newStatus }),
             credentials: 'include'
         });
-        
-        if (dashboardResponse.ok) {
-            const data = await dashboardResponse.json();
-            const stats = {
-                total: data.length,
-                pending: data.filter(claim => claim.status.toUpperCase() === 'PENDING').length,
-                approved: data.filter(claim => claim.status.toUpperCase() === 'APPROVED').length,
-                rejected: data.filter(claim => claim.status.toUpperCase() === 'REJECTED').length
-            };
-            
-            document.getElementById('totalClaims').textContent = stats.total;
-            document.getElementById('pendingClaims').textContent = stats.pending;
-            document.getElementById('approvedClaims').textContent = stats.approved;
-            document.getElementById('rejectedClaims').textContent = stats.rejected;
-            
-            // Update the claims display
-            displayClaims(data);
+
+        const responseData = await response.text();
+        console.log('Server response:', responseData); // Debug log
+
+        if (!response.ok) {
+            throw new Error(`Failed to update status: ${responseData}`);
         }
+
+        const data = responseData ? JSON.parse(responseData) : {};
+        
+        // Show success notification
+        showNotification('Status updated and notification email sent to customer', 'success');
+        
+        // Refresh the claims display
+        fetchDashboardData();
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to update claim status');
+        showNotification('Failed to update status: ' + error.message, 'error');
     }
+}
+
+// Add notification function
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()">×</button>
+        </div>
+    `;
+    document.body.appendChild(notification);
+    
+    // Remove notification after 5 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
 }
 
 // Logout functionality
@@ -268,3 +276,42 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
         alert(error.message || 'Failed to logout. Please try again.');
     }
 });
+
+async function fetchDashboardData() {
+    try {
+        const dashboardResponse = await fetch('/api/admin/claims', {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
+
+        if (!dashboardResponse.ok) {
+            throw new Error('Failed to fetch dashboard data');
+        }
+
+        const data = await dashboardResponse.json();
+        
+        // Update statistics
+        const stats = {
+            total: data.length,
+            pending: data.filter(claim => claim.status.toUpperCase() === 'PENDING').length,
+            approved: data.filter(claim => claim.status.toUpperCase() === 'APPROVED').length,
+            rejected: data.filter(claim => claim.status.toUpperCase() === 'REJECTED').length
+        };
+        
+        document.getElementById('totalClaims').textContent = stats.total;
+        document.getElementById('pendingClaims').textContent = stats.pending;
+        document.getElementById('approvedClaims').textContent = stats.approved;
+        document.getElementById('rejectedClaims').textContent = stats.rejected;
+        
+        // Update the claims display
+        displayClaims(data);
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Failed to refresh dashboard data', 'error');
+    }
+}

@@ -52,16 +52,15 @@ body::after {
 
 .form-container {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     max-width: 800px;
     width: 100%;
     background: rgba(255, 255, 255, 0.95);
     padding: 2.5rem;
     border-radius: 20px;
-    box-shadow: 
-        0 15px 30px rgba(0, 0, 0, 0.1),
-        0 5px 15px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
 }
 
@@ -127,7 +126,7 @@ body::after {
 /* Form steps animation */
 .form-step {
     display: none;
-    animation: fadeIn 0.5s ease-in-out;
+    animation: fadeIn 0.5s ease-out;
 }
 
 @keyframes fadeIn {
@@ -165,15 +164,20 @@ h2::after {
 }
 
 .form-group {
-    margin-bottom: 1.8rem;
+    margin-bottom: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.form-group:hover {
+    transform: translateY(-2px);
 }
 
 label {
     display: block;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.5rem;
+    color: #333;
     font-weight: 500;
-    color: #555;
-    transition: color 0.3s ease;
+    font-size: 0.95rem;
 }
 
 .form-group:focus-within label {
@@ -182,18 +186,19 @@ label {
 
 input, select, textarea {
     width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #eee;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e7eb;
     border-radius: 8px;
     font-size: 1rem;
     transition: all 0.3s ease;
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.9);
 }
 
 input:focus, select:focus, textarea:focus {
-    border-color: #ff6b00;
     outline: none;
-    box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.1);
+    border-color: #ff6b00;
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+    background: white;
 }
 
 textarea {
@@ -227,9 +232,9 @@ button {
 }
 
 .btn-next:hover, .btn-submit:hover {
-    background: #e65c00;
+    background: #e65100;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 107, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(230, 81, 0, 0.2);
 }
 
 .btn-prev {
@@ -596,4 +601,14 @@ input[type="file"]:hover {
     color: #666;
     margin-top: 1rem;
     font-size: 0.9rem;
+}
+
+#particles-js {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%);
 } 

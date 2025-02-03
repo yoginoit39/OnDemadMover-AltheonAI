@@ -6,8 +6,11 @@
     <title>File a Claim - On Demand Movers USA</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/claim-form.css">
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="/js/particles-config.js"></script>
 </head>
 <body>
+    <div id="particles-js"></div>
     <div class="floating-shape shape-1"></div>
     <div class="floating-shape shape-2"></div>
     
@@ -95,5 +98,11 @@
         </form>
     </div>
     <script src="/js/claim-form.js"></script>
+    <script>
+        particlesInit();
+        function particlesInit() {
+            particlesJS('particles-js', particlesConfig);
+        }
+    </script>
 </body>
 </html> 

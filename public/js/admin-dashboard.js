@@ -165,6 +165,12 @@ async function viewDetails(claimId) {
                     <p><strong>Item Weight:</strong> ${claim.itemWeight} lbs</p>
                     <p><strong>Damage Type:</strong> ${claim.damageType}</p>
                     <p><strong>Description:</strong> ${claim.description}</p>
+                    ${claim.status === 'REJECTED' && claim.rejectionReason ? `
+                    <div style="background: #fff5f5; border-left: 4px solid #ef4444; padding: 15px; margin: 15px 0; border-radius: 4px;">
+                        <p style="margin: 0; color: #dc2626;"><strong>Reason for Rejection:</strong></p>
+                        <p style="margin: 10px 0 0 0; color: #4b5563;">${claim.rejectionReason}</p>
+                    </div>
+                    ` : ''}
                     ${claim.additionalInfo ? `<p><strong>Additional Info:</strong> ${claim.additionalInfo}</p>` : ''}
                     ${claim.images && claim.images.length > 0 ? `
                         <div class="claim-images">
@@ -200,20 +206,85 @@ async function viewDetails(claimId) {
 }
 
 async function updateClaimStatus(claimId, newStatus) {
+    // If status is REJECTED, show reason popup
+    if (newStatus === 'REJECTED') {
+        const reason = await showReasonPopup();
+        if (!reason) {
+            // If admin cancels, reset the select to previous value
+            fetchDashboardData();
+            return;
+        }
+        return updateClaimWithReason(claimId, newStatus, reason);
+    }
+
+    // For other statuses, proceed normally
+    return updateClaimWithReason(claimId, newStatus);
+}
+
+function showReasonPopup() {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px;">
+                <h3>Rejection Reason</h3>
+                <p>Please provide a reason for rejecting this claim:</p>
+                <textarea 
+                    id="rejectionReason" 
+                    rows="4" 
+                    style="width: 100%; margin: 10px 0; padding: 8px;"
+                    placeholder="Enter reason for rejection..."
+                ></textarea>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn-cancel">Cancel</button>
+                    <button class="btn-submit">Submit</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const submitBtn = modal.querySelector('.btn-submit');
+        const cancelBtn = modal.querySelector('.btn-cancel');
+        const textarea = modal.querySelector('#rejectionReason');
+
+        submitBtn.onclick = () => {
+            const reason = textarea.value.trim();
+            if (!reason) {
+                alert('Please provide a reason for rejection');
+                return;
+            }
+            modal.remove();
+            resolve(reason);
+        };
+
+        cancelBtn.onclick = () => {
+            modal.remove();
+            resolve(null);
+        };
+    });
+}
+
+async function updateClaimWithReason(claimId, newStatus, reason = '') {
     try {
-        console.log('Updating status:', { claimId, newStatus }); // Debug log
+        console.log('Sending update request:', {
+            claimId,
+            newStatus,
+            reason
+        });
+        
         const response = await fetch(`/api/admin/claims/${claimId}/status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ status: newStatus }),
+            body: JSON.stringify({ status: newStatus, reason }),
             credentials: 'include'
         });
 
         const responseData = await response.text();
-        console.log('Server response:', responseData); // Debug log
+        console.log('Server response:', responseData);
 
         if (!response.ok) {
             throw new Error(`Failed to update status: ${responseData}`);
@@ -250,33 +321,7 @@ function showNotification(message, type = 'success') {
     }, 5000);
 }
 
-// Logout functionality
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try {
-        const response = await fetch('/api/admin/logout', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            // Clear any stored tokens/data
-            localStorage.removeItem('adminToken');
-            sessionStorage.removeItem('adminToken');
-            
-            window.location.href = '/admin';
-        } else {
-            const data = await response.json();
-            throw new Error(data.error || 'Logout failed');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert(error.message || 'Failed to logout. Please try again.');
-    }
-});
-
+// Add fetchDashboardData function
 async function fetchDashboardData() {
     try {
         const dashboardResponse = await fetch('/api/admin/claims', {
@@ -315,3 +360,31 @@ async function fetchDashboardData() {
         showNotification('Failed to refresh dashboard data', 'error');
     }
 }
+
+// Logout functionality
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+        const response = await fetch('/api/admin/logout', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            // Clear any stored tokens/data
+            localStorage.removeItem('adminToken');
+            sessionStorage.removeItem('adminToken');
+            
+            // Redirect to admin login page
+            window.location.href = '/admin';
+        } else {
+            const data = await response.json();
+            throw new Error(data.error || 'Logout failed');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Failed to logout. Please try again.');
+    }
+});

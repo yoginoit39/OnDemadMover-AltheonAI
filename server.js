@@ -53,6 +53,7 @@ const ClaimSchema = new mongoose.Schema({
     description: String,
     additionalInfo: String,
     images: [String],
+    rejectionReason: String,
     status: {
         type: String,
         enum: ['PENDING', 'APPROVED', 'REJECTED'],
@@ -170,27 +171,38 @@ const transporter = nodemailer.createTransport({
 });
 
 // Email notification function
-async function sendStatusUpdateEmail(claim, newStatus) {
-    console.log('Preparing to send status update email:', { claim, newStatus });
+async function sendStatusUpdateEmail(claim, newStatus, reason = '') {
+    console.log('Inside sendStatusUpdateEmail:', { newStatus, reason });
     const statusMessages = {
         APPROVED: "We're pleased to inform you that your claim has been approved.",
         REJECTED: "After careful review, we regret to inform you that your claim has been rejected.",
         PENDING: "Your claim status has been updated to pending review."
     };
 
+    console.log('Rejection check:', { 
+        isRejected: newStatus === 'REJECTED',
+        reason: reason
+    });
+
     const emailTemplate = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px;">
             <h2 style="color: #ff6b00;">Claim Status Update</h2>
             <p>Dear ${claim.name},</p>
             <p>${statusMessages[newStatus]}</p>
+            ${newStatus === 'REJECTED' ? `
+            <div style="background: #fff5f5; border-left: 4px solid #ef4444; padding: 15px; margin: 15px 0; border-radius: 4px;">
+                <p style="margin: 0; color: #dc2626;"><strong>Reason for Rejection:</strong></p>
+                <p style="margin: 10px 0 0 0; color: #4b5563;">${reason}</p>
+            </div>
+            ` : ''}
             <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
-                <p><strong>Claim Details:</strong></p>
-                <p>Item Type: ${claim.itemType}</p>
-                <p>Issue Type: ${claim.damageType}</p>
-                <p>Submitted: ${new Date(claim.createdAt).toLocaleDateString()}</p>
+                <p style="margin: 0;"><strong>Claim Details:</strong></p>
+                <p style="margin: 10px 0;">Item Type: ${claim.itemType}</p>
+                <p style="margin: 10px 0;">Issue Type: ${claim.damageType}</p>
+                <p style="margin: 10px 0;">Submitted: ${new Date(claim.createdAt).toLocaleDateString()}</p>
             </div>
             <p>If you have any questions, please don't hesitate to contact us.</p>
-            <p>Best regards,<br>On Demand Movers USA</p>
+            <p style="margin-top: 20px;">Best regards,<br>On Demand Movers USA</p>
         </div>
     `;
 
@@ -212,9 +224,13 @@ async function sendStatusUpdateEmail(claim, newStatus) {
 // Update the status update endpoint
 app.post('/api/admin/claims/:id/status', authenticateToken, async (req, res) => {
     try {
-        console.log('Received status update request:', { id: req.params.id, status: req.body.status });
+        console.log('Received status update request:', { 
+            id: req.params.id, 
+            status: req.body.status,
+            reason: req.body.reason
+        });
         const { id } = req.params;
-        const { status } = req.body;
+        const { status, reason } = req.body;
         
         if (!status) {
             return res.status(400).json({ error: 'Status is required' });
@@ -226,16 +242,20 @@ app.post('/api/admin/claims/:id/status', authenticateToken, async (req, res) => 
         }
         
         claim.status = status;
+        if (reason) {
+            claim.rejectionReason = reason;
+            console.log('Setting rejection reason:', reason);
+        }
         console.log('Updating claim with status:', status);
         await claim.save();
         
         // Send email notification
         try {
-            await sendStatusUpdateEmail(claim, status);
+            console.log('Sending email with reason:', reason);
+            await sendStatusUpdateEmail(claim, status, reason);
             console.log('Status update email sent successfully');
         } catch (emailError) {
             console.error('Failed to send status update email:', emailError);
-            // Continue with the response even if email fails
         }
         
         res.json({ success: true, claim });

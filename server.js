@@ -94,7 +94,7 @@ app.use(session({
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 
 // JWT middleware
@@ -349,19 +349,11 @@ createInitialAdmin();
 
 // Secure admin routes
 app.get('/admin', (req, res) => {
-    res.sendFile(__dirname + '/public/admin-login.html');
+    res.sendFile(path.join(__dirname, 'public/admin-login.html'));
 });
 
 app.get('/admin/dashboard', authenticateToken, (req, res) => {
-    // If token is in query params, set it in a cookie
-    if (req.query.token) {
-        res.cookie('adminToken', req.query.token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
-        });
-    }
-    res.sendFile(__dirname + '/views/admin-dashboard.html');
+    res.sendFile(path.join(__dirname, 'views/admin-dashboard.html'));
 });
 
 // API routes that require authentication

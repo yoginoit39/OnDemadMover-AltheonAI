@@ -145,6 +145,8 @@ app.post('/api/admin/login', async (req, res) => {
 
 app.get('/api/admin/claims', authenticateToken, async (req, res) => {
     try {
+        // Clear any cached data
+        res.set('Cache-Control', 'no-store');
         const claims = await Claim.find().sort({ createdAt: -1 });
         console.log('Fetched claims:', claims);
         if (!claims) {

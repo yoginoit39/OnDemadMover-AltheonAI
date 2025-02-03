@@ -34,6 +34,8 @@ body {
     background: var(--white);
     border-radius: 20px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 2;
 }
 
 /* Header */
@@ -508,4 +510,13 @@ header h1 {
 .stat-card.rejected {
     border-left: 4px solid var(--danger);
     background: linear-gradient(to right, rgba(239, 68, 68, 0.05), transparent);
+}
+
+#particles-js {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
 } 
